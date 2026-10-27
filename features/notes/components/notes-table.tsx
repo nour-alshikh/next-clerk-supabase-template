@@ -5,6 +5,7 @@ import { DataTableColumnHeader } from "@/components/data-table/data-table-column
 import { dataTableColumns } from "@/components/data-table/features";
 import type { Note } from "../queries";
 import { DeleteNoteButton } from "./delete-note-button";
+import { EditNoteButton } from "./edit-note-button";
 
 const dateFormat = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" });
 
@@ -30,7 +31,8 @@ const columns = col.columns([
   col.display({
     id: "actions",
     cell: ({ row }) => (
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-1">
+        <EditNoteButton note={row.original} />
         <DeleteNoteButton id={row.original.id} />
       </div>
     ),

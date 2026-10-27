@@ -7,3 +7,6 @@ export const noteSchema = z.object({
 export type NoteInput = z.infer<typeof noteSchema>;
 
 export const noteIdSchema = z.object({ id: z.number().int().positive() });
+
+export const updateNoteSchema = noteSchema.extend(noteIdSchema.shape);
+export type UpdateNoteInput = z.infer<typeof updateNoteSchema>;

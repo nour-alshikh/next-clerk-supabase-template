@@ -22,7 +22,7 @@ components/
   ui/                     shadcn components (npx shadcn@latest add <name>)
   layout/                 sidebar + topbar app shells, marketing header, logo, user menu
   data-table/             DataTable (sort, search, pagination), column header, skeleton
-  crud/                   CreateButton (drawer or /new page)
+  crud/                   CreateButton (drawer or /new page), EditButton (row edit drawer)
   page-header.tsx         title + description + actions
   motion/                 Reveal, Stagger, SplitText
 lib/
@@ -183,7 +183,8 @@ Every module's index page is a `DataTable`, plus a Create button that opens eith
 | `features/<module>/config.ts` | `createMode: "drawer"` or `"page"` |
 | `features/<module>/components/<module>-table.tsx` | the columns |
 | `features/<module>/components/create-<module>-button.tsx` | label, href, title |
-| `features/<module>/components/<module>-form.tsx` | fields; keep `onSuccess` + `redirectTo` props |
+| `features/<module>/components/edit-<module>-button.tsx` | row edit drawer (`EditButton` from `components/crud`) |
+| `features/<module>/components/<module>-form.tsx` | fields; keep `note`-style edit prop + `onSuccess` + `redirectTo` props |
 | `app/(app)/<module>/page.tsx` | `PageHeader` + create button + table |
 | `app/(app)/<module>/new/page.tsx` | the form page (used in "page" mode) |
 
