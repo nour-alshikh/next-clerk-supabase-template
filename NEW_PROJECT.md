@@ -24,7 +24,7 @@ git remote add origin https://github.com/<you>/<new-name>.git
 Then:
 - Change `"name"` in `package.json`.
 - Change `title` and `description` in `app/layout.tsx`.
-- Change the project name in `components/site-header.tsx` and `app/page.tsx`.
+- Change the project name in `components/site-header.tsx` and `app/(marketing)/page.tsx`.
 
 ```bash
 npm install
@@ -62,7 +62,8 @@ cp .env.example .env.local
    - Paste the Clerk domain **with `https://`** and **no trailing slash**: `https://xxxx.clerk.accounts.dev`
 4. Run the migrations in `supabase/migrations/`:
    - In the **SQL Editor**, paste each file in order and run it, **or**
-   - with the CLI: `npx supabase link --project-ref <project-ref>` then `npx supabase db push`.
+   - with the CLI: `npm run db:link` (enter project ref + DB password), then `npm run db:push`.
+5. `npm run db:types` to regenerate `types/database.ts` for the new project.
 
 > ⚠️ **Never** put the secret key (`sb_secret_...`) or `CLERK_SECRET_KEY` in a `NEXT_PUBLIC_*` variable, because those are sent to the browser.
 > ⚠️ **Never** put real values in `.env.example`, because it is committed. Real values go only in `.env.local`, which is gitignored.
@@ -116,9 +117,10 @@ npm run dev
 | Piece | Where |
 | --- | --- |
 | Auth middleware | `proxy.ts` (Next 16 renamed `middleware` to `proxy`) |
-| Protect a page/action | `await auth.protect()` inside it |
+| Protect a page | `await requireUser()` from `lib/auth.ts` (actions: use `createAction`) |
+| Add a feature | Follow `docs/MODULES.md` |
 | Supabase (server) | `createServerSupabaseClient()` from `lib/supabase/server.ts` |
 | Supabase (client) | `useSupabase()` from `lib/supabase/client.ts` |
 | GSAP | import `gsap`, `useGSAP`, `ScrollTrigger` from `lib/gsap.ts` |
 | UI components | `components/ui/` and add more with `npx shadcn@latest add <name>` |
-| New table | Copy `supabase/migrations/0001_notes.sql` pattern: `user_id text default auth.jwt()->>'sub'` + RLS policies |
+| New table | `npm run db:new <name>` + paste `supabase/templates/user-owned-table.sql` |

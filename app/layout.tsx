@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { SiteHeader } from "@/components/site-header";
+import { Toaster } from "@/components/ui/sonner";
+// Fail fast with a clear message if .env.local is missing or wrong
+import "@/lib/env";
+import "@/lib/env.server";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -29,6 +33,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <body className="min-h-full flex flex-col">
           <SiteHeader />
           {children}
+          <Toaster />
         </body>
       </html>
     </ClerkProvider>

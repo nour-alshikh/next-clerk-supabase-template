@@ -3,6 +3,7 @@
 Next.js 16 · Clerk (Google sign-in) · Supabase · shadcn/ui · GSAP
 
 > **Starting a new project from this template? Follow [NEW_PROJECT.md](NEW_PROJECT.md).**
+> **Adding a feature? Follow [docs/MODULES.md](docs/MODULES.md).**
 
 ## Setup
 
@@ -22,11 +23,16 @@ Next.js 16 · Clerk (Google sign-in) · Supabase · shadcn/ui · GSAP
 
 | Path | Purpose |
 | --- | --- |
-| `proxy.ts` | Clerk middleware; protect pages with `await auth.protect()` inside them |
-| `lib/supabase/server.ts` | Supabase client for server code, authed with the Clerk token |
-| `lib/supabase/client.ts` | `useSupabase()` hook for client components |
-| `lib/gsap.ts` | Registered GSAP + `useGSAP`; import from here |
+| `proxy.ts` | Clerk middleware; protect pages with `requireUser()` from `lib/auth.ts` |
+| `features/<module>/` | One folder per feature: schema, queries, actions, components |
+| `features/notes/` | Reference module: copy it for new features |
+| `lib/action.ts` | `createAction()`: auth + zod validation + error handling for Server Actions |
+| `lib/supabase/` | Typed Supabase clients, authed with the Clerk token |
+| `lib/env.ts` | Validated env vars |
+| `components/motion/` | `Reveal`, `Stagger`, `SplitText` animation primitives |
 | `components/ui/` | shadcn components (`npx shadcn@latest add <name>`) |
-| `app/dashboard` | Example protected page reading Supabase with RLS |
+| `supabase/templates/` | Migration template for user-owned tables |
+
+Full guide: [docs/MODULES.md](docs/MODULES.md).
 
 With `cacheComponents` on, anything reading auth/session/URL (Clerk `Show`, `SignIn`, `auth()`, `currentUser()`) must render inside `<Suspense>`.
