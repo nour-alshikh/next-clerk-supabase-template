@@ -72,6 +72,30 @@ cp .env.example .env.local
 > ⚠️ **Never** put the secret key (`sb_secret_...`) or `CLERK_SECRET_KEY` in a `NEXT_PUBLIC_*` variable, because those are sent to the browser.
 > ⚠️ **Never** put real values in `.env.example`, because it is committed. Real values go only in `.env.local`, which is gitignored.
 
+The migrations create `notes` (example), `profiles` (synced from Clerk) and the private `uploads` Storage bucket.
+
+---
+
+## 3b. Optional services
+
+Each one switches itself off when its env vars are empty, so the app runs without them.
+
+**Clerk webhook (fills `profiles`, deletes user data on account deletion, sends welcome email)**
+1. Clerk → **Webhooks** → **Add endpoint**: `https://<your-domain>/api/webhooks/clerk`, events `user.created`, `user.updated`, `user.deleted`.
+   - Local dev: expose port 3000 with a tunnel (e.g. `ngrok http 3000`) and use that URL.
+2. Copy the **Signing secret** → `CLERK_WEBHOOK_SIGNING_SECRET`. The webhook also needs `SUPABASE_SECRET_KEY`.
+3. New user-owned table or bucket? Add it to `deleteUserData()` in `app/api/webhooks/clerk/route.ts`.
+
+**Sentry (error monitoring)**: create a Next.js project at sentry.io → `NEXT_PUBLIC_SENTRY_DSN`. For readable stack traces in production also set `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN` in the hosting env (source maps upload at build).
+
+**Upstash (rate limiting)**: console.upstash.com → create Redis → `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`. Every `createAction` is then limited to 30 calls/min per user (`lib/rate-limit.ts`).
+
+**Resend (email)**: resend.com → verify your domain → `RESEND_API_KEY`, `EMAIL_FROM`. Templates live in `emails/`; preview them with `npm run email:dev`. Without a key, emails are logged instead of sent.
+
+**Vercel Analytics / Speed Insights**: enable both in the Vercel project dashboard. No env vars; they do nothing outside Vercel.
+
+**Security headers / CSP**: set in `next.config.ts`. When you add a third-party script, image host or browser-side API, add its host to the CSP there, or the browser will block it (check the console for `Content-Security-Policy` errors).
+
 ---
 
 ## 4. Run and verify
@@ -128,3 +152,10 @@ npm run dev
 | GSAP | import `gsap`, `useGSAP`, `ScrollTrigger` from `lib/gsap.ts` |
 | UI components | `components/ui/` and add more with `npx shadcn@latest add <name>` |
 | New table | `npm run db:new <name>` + paste `supabase/templates/user-owned-table.sql` |
+| Big table (server paging) | `DataTable` `server` prop + `parseTableParams` (see `features/notes`) |
+| File uploads | `<FileUploadButton>` from `components/file-upload-button.tsx` (see `features/files`) |
+| Send email | `sendEmail()` from `lib/email.ts`, templates in `emails/` |
+| Rate limit | built into `createAction`; custom: `rateLimit(key)` from `lib/rate-limit.ts` |
+| User data (names/avatars) | `profiles` table, synced by `app/api/webhooks/clerk/route.ts` |
+| Errors | Sentry: `instrumentation.ts`, `instrumentation-client.ts`, `app/global-error.tsx` |
+| Security headers / CSP | `next.config.ts` |

@@ -15,6 +15,11 @@ create table public.items (
 
 create index items_user_id_idx on public.items (user_id);
 
+-- set_updated_at() is defined in 0002_profiles.sql
+create trigger items_set_updated_at
+  before update on public.items
+  for each row execute function public.set_updated_at();
+
 alter table public.items enable row level security;
 
 create policy "Users read own items" on public.items

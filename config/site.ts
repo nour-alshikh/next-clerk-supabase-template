@@ -1,4 +1,4 @@
-import { LayoutDashboardIcon, NotebookPenIcon, SettingsIcon, type LucideIcon } from "lucide-react";
+import { FolderIcon, LayoutDashboardIcon, NotebookPenIcon, SettingsIcon, type LucideIcon } from "lucide-react";
 
 export type AppLayout = "sidebar" | "topbar";
 
@@ -21,6 +21,7 @@ export type NavItem = { title: string; href: string; icon: LucideIcon };
 export const appNav: NavItem[] = [
   { title: "Dashboard", href: "/dashboard", icon: LayoutDashboardIcon },
   { title: "Notes", href: "/notes", icon: NotebookPenIcon },
+  { title: "Files", href: "/files", icon: FolderIcon },
   { title: "Settings", href: "/settings", icon: SettingsIcon },
 ];
 

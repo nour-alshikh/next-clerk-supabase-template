@@ -1,7 +1,10 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Geist_Mono, Rubik } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { shadcn } from "@clerk/themes";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -44,6 +47,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               <Toaster />
             </TooltipProvider>
           </ThemeProvider>
+          {/* Vercel Web Analytics + Speed Insights; no-ops outside Vercel.
+              Suspense because they read the URL, which cacheComponents requires. */}
+          <Suspense>
+            <Analytics />
+            <SpeedInsights />
+          </Suspense>
         </body>
       </html>
     </ClerkProvider>

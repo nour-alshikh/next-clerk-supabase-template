@@ -3,6 +3,7 @@
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { dataTableColumns } from "@/components/data-table/features";
+import type { TableParams } from "@/lib/table-params";
 import type { Note } from "../queries";
 import { DeleteNoteButton } from "./delete-note-button";
 import { EditNoteButton } from "./edit-note-button";
@@ -39,11 +40,12 @@ const columns = col.columns([
   }),
 ]);
 
-export function NotesTable({ data }: { data: Note[] }) {
+export function NotesTable({ data, params, total }: { data: Note[]; params: TableParams; total: number }) {
   return (
     <DataTable
       columns={columns}
       data={data}
+      server={{ params, rowCount: total }}
       searchPlaceholder="Search notes…"
       emptyMessage="No notes yet. Create your first one."
     />

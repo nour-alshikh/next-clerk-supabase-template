@@ -27,11 +27,15 @@ components/
   motion/                 Reveal, Stagger, SplitText
 lib/
   auth.ts                 requireUser(), getUserId()
-  action.ts               createAction() wrapper + ActionError
+  action.ts               createAction() wrapper + ActionError (auth, rate limit, validation, Sentry)
+  rate-limit.ts           rateLimit(key): Upstash, off without env vars
+  email.ts                sendEmail() with Resend + React Email templates from emails/
+  storage.ts              Storage bucket name, user file paths, formatBytes
+  table-params.ts         URL params for server-side tables (parseTableParams, pageRange)
   action-result.ts        ActionResult type
   forms.ts                handleActionResult() for react-hook-form
   env.ts / env.server.ts  validated env vars
-  supabase/               typed Supabase clients
+  supabase/               typed Supabase clients (admin.ts bypasses RLS: webhooks only)
   gsap.ts                 registered GSAP + plugins
 types/database.ts         generated DB types (npm run db:types)
 supabase/
@@ -203,8 +207,31 @@ const columns = col.columns([
 ```
 
 - Exclude a column from search: `enableGlobalFilter: false`.
-- Sorting, search and pagination run in the browser over the rows the page loaded. That's fine for hundreds of rows.
-- For thousands of rows, page and filter in the Supabase query instead (`.range()`, `.ilike()`).
+- **Client mode** (no `server` prop): sorting, search and pagination run in the browser over the rows the page loaded. Fine for hundreds of rows. `features/files` uses this.
+- **Server mode** (`server` prop): the database does it, so any table size works. State lives in the URL (`?page=2&size=20&sort=name.asc&q=foo`). `features/notes` uses this:
+
+```ts
+// queries.ts
+export const projectSortable = ["name", "created_at"] as const; // column ids = DB columns
+export async function getProjects({ page, pageSize, sort, q }: TableParams<(typeof projectSortable)[number]>) {
+  const { from, to } = pageRange({ page, pageSize });
+  let query = supabase.from("projects").select("*", { count: "exact" })
+    .order(sort.id, { ascending: !sort.desc }).range(from, to);
+  if (q) query = query.ilike("name", `%${escapeLike(q)}%`);
+  const { data, count } = await query;
+  return { rows: data, total: count ?? 0 };
+}
+
+// page.tsx: read searchParams inside <Suspense>
+const params = parseTableParams(await searchParams, { sortable: projectSortable, defaultSort: { id: "created_at", desc: true } });
+const { rows, total } = await getProjects(params);
+<ProjectsTable data={rows} params={params} total={total} />
+
+// <module>-table.tsx
+<DataTable columns={columns} data={data} server={{ params, rowCount: total }} searchPlaceholder="Search…" />
+```
+
+  Only columns listed in `sortable` can be sorted from the URL; mark the others `enableSorting: false`.
 - TanStack v9 differs from v8 (`useTable`, explicit features). The bundled docs are in `node_modules/@tanstack/react-table/skills/`.
 
 **Create modes:**
