@@ -2,6 +2,8 @@
 
 Next.js 16 · Clerk (Google sign-in) · Supabase · shadcn/ui · GSAP
 
+> **Starting a new project from this template? Follow [NEW_PROJECT.md](NEW_PROJECT.md).**
+
 ## Setup
 
 1. `npm install`
