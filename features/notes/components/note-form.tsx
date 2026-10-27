@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,15 @@ import { handleActionResult } from "@/lib/forms";
 import { createNote } from "../actions";
 import { noteSchema, type NoteInput } from "../schema";
 
-export function NoteForm() {
+type NoteFormProps = {
+  /** Drawer mode: e.g. close the drawer. */
+  onSuccess?: () => void;
+  /** Page mode: where to go after saving, e.g. "/notes". */
+  redirectTo?: string;
+};
+
+export function NoteForm({ onSuccess, redirectTo }: NoteFormProps) {
+  const router = useRouter();
   const form = useForm<NoteInput>({
     resolver: zodResolver(noteSchema),
     defaultValues: { content: "" },
@@ -17,7 +26,10 @@ export function NoteForm() {
 
   async function onSubmit(values: NoteInput) {
     const result = await createNote(values);
-    if (handleActionResult(form, result, "Note added")) form.reset();
+    if (!handleActionResult(form, result, "Note added")) return;
+    form.reset();
+    onSuccess?.();
+    if (redirectTo) router.push(redirectTo);
   }
 
   return (
@@ -27,11 +39,12 @@ export function NoteForm() {
         name="content"
         render={({ field, fieldState }) => (
           <Field data-invalid={fieldState.invalid}>
-            <FieldLabel htmlFor="note-content">New note</FieldLabel>
+            <FieldLabel htmlFor="note-content">Note</FieldLabel>
             <Textarea
               {...field}
               id="note-content"
               placeholder="Write something…"
+              rows={5}
               aria-invalid={fieldState.invalid}
             />
             <FieldError errors={[fieldState.error]} />
@@ -39,7 +52,7 @@ export function NoteForm() {
         )}
       />
       <Button type="submit" className="self-end" disabled={form.formState.isSubmitting}>
-        {form.formState.isSubmitting ? "Saving…" : "Add note"}
+        {form.formState.isSubmitting ? "Saving…" : "Save note"}
       </Button>
     </form>
   );

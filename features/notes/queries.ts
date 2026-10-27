@@ -13,4 +13,14 @@ export async function getNotes() {
   return data;
 }
 
-export type Note = Awaited<ReturnType<typeof getNotes>>[number];
+export async function getNotesCount() {
+  const supabase = createServerSupabaseClient();
+  const { count, error } = await supabase
+    .from("notes")
+    .select("*", { count: "exact", head: true });
+
+  if (error) throw new Error(`Failed to count notes: ${error.message}`);
+  return count ?? 0;
+}
+
+export type Note =Awaited<ReturnType<typeof getNotes>>[number];

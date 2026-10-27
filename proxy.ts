@@ -2,7 +2,12 @@ import { clerkMiddleware } from "@clerk/nextjs/server";
 
 // Makes the Clerk session available to auth()/currentUser().
 // Protect routes inside each page/layout/route handler with `await auth.protect()`.
-export default clerkMiddleware();
+export default clerkMiddleware({
+  // Dev only: tolerate a PC clock up to 60s off (Clerk's default is 5s), which
+  // otherwise shows up as sign-in redirect loops and "You must be signed in".
+  // Production keeps the strict default.
+  clockSkewInMs: process.env.NODE_ENV === "development" ? 60_000 : undefined,
+});
 
 export const config = {
   matcher: [

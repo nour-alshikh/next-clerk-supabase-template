@@ -16,8 +16,14 @@ features/
     queries.ts            reads (server-only)
     actions.ts            Server Actions: create / update / delete
     components/           UI used only by this module
+config/
+  site.ts                 app name, appLayout ("sidebar" | "topbar"), nav links
 components/
   ui/                     shadcn components (npx shadcn@latest add <name>)
+  layout/                 sidebar + topbar app shells, marketing header, logo, user menu
+  data-table/             DataTable (sort, search, pagination), column header, skeleton
+  crud/                   CreateButton (drawer or /new page)
+  page-header.tsx         title + description + actions
   motion/                 Reveal, Stagger, SplitText
 lib/
   auth.ts                 requireUser(), getUserId()
@@ -156,6 +162,74 @@ async function ProtectedProjectList() {
 }
 ```
 
+Pages in `(app)` render a `<div>`, not `<main>`: the app shell already provides `<main>`.
+
+### 7. Add it to the nav: `config/site.ts`
+
+```ts
+{ title: "Projects", href: "/projects", icon: FolderIcon },
+```
+
+It shows up in both the sidebar and the top bar.
+
+---
+
+## Index page: data table + create (drawer or page)
+
+Every module's index page is a `DataTable`, plus a Create button that opens either a **drawer** or a **/new page**. `features/notes` does exactly this. Copy these files:
+
+| File | What to change |
+| --- | --- |
+| `features/<module>/config.ts` | `createMode: "drawer"` or `"page"` |
+| `features/<module>/components/<module>-table.tsx` | the columns |
+| `features/<module>/components/create-<module>-button.tsx` | label, href, title |
+| `features/<module>/components/<module>-form.tsx` | fields; keep `onSuccess` + `redirectTo` props |
+| `app/(app)/<module>/page.tsx` | `PageHeader` + create button + table |
+| `app/(app)/<module>/new/page.tsx` | the form page (used in "page" mode) |
+
+**Columns (TanStack Table v9)** are typed with the shared helper and defined at **module scope**:
+
+```tsx
+const col = dataTableColumns<Project>();
+const columns = col.columns([
+  col.accessor("name", {
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />, // sortable
+  }),
+  col.display({ id: "actions", cell: ({ row }) => <DeleteProjectButton id={row.original.id} /> }),
+]);
+
+<DataTable columns={columns} data={projects} searchPlaceholder="Search projects…" />
+```
+
+- Exclude a column from search: `enableGlobalFilter: false`.
+- Sorting, search and pagination run in the browser over the rows the page loaded. That's fine for hundreds of rows.
+- For thousands of rows, page and filter in the Supabase query instead (`.range()`, `.ilike()`).
+- TanStack v9 differs from v8 (`useTable`, explicit features). The bundled docs are in `node_modules/@tanstack/react-table/skills/`.
+
+**Create modes:**
+
+| Mode | What happens after save |
+| --- | --- |
+| `"drawer"` | Side panel on the index page. Closes and the table refreshes. |
+| `"page"` | Button links to `/<module>/new`. Redirects back to the list. |
+
+---
+
+## App layout: sidebar or top bar
+
+Both layouts are always available. Users switch with the layout button in the header (next to the theme toggle). The choice is saved in the `app-layout` cookie, so it sticks on reload with no flash.
+
+The default, for users who haven't switched, is set in `config/site.ts`:
+
+```ts
+appLayout: "sidebar", // collapsible side menu; becomes a slide-out sheet on mobile
+appLayout: "topbar",  // links in the header; hamburger menu on mobile
+```
+
+Both read the same `appNav` list, and both include the layout toggle, the theme toggle and the user menu (avatar, name, sign out). Code: `components/layout/app-shell.tsx`.
+
+To lock a project to one layout, remove `<LayoutToggle />` from both headers.
+
 ---
 
 ## Rules
@@ -169,6 +243,22 @@ async function ProtectedProjectList() {
 | Auth-dependent UI in layouts (header, nav) must be a client component. | Server-rendered layout UI goes stale after sign-in/out. |
 | Only `NEXT_PUBLIC_*` env vars in client code. Add new vars to `lib/env.ts` or `lib/env.server.ts` **and** `.env.example`. | Validation fails fast with a clear message. |
 | Import GSAP from `@/lib/gsap`, never from `"gsap"` directly. | Plugins are registered there. |
+| Button as a link: `<Button nativeButton={false} render={<Link href="…" />}>`. | shadcn uses Base UI here; without `nativeButton={false}` it logs a console error. |
+| Use theme colors (`bg-primary`, `text-muted-foreground`, `bg-brand-100`, `text-success`), never raw hex. | Light and dark both come from `app/globals.css`. |
+
+---
+
+## Theme
+
+- **Colors** live in `app/globals.css`. Brand scale `--brand-25…950` and gray scale `--gray-25…950` come from the Figma design tokens.
+  - `.dark` uses the token file's theme roles. `:root` (light) is derived from the same palettes.
+  - **New project with a new tokens file:** replace the `--brand-*` / `--gray-*` values and the status colors. Everything else follows.
+- **Extra Tailwind colors:** `brand-25…950`, `success`, `warning`, `info` (plus the usual shadcn ones).
+- **Font:** Rubik, set in `app/layout.tsx`.
+- **Dark mode:** dark by default (next-themes). The toggle is in the header. Use `dark:` variants when needed.
+  - Switching animates as a circle growing from the toggle button (View Transitions API).
+  - The animation is CSS (`theme-reveal` in `globals.css`). It's skipped for reduced motion and in browsers without view transitions.
+- **Clerk screens:** sign-in, sign-up and the user menu use Clerk's `shadcn` theme, so they follow these variables automatically.
 
 ---
 

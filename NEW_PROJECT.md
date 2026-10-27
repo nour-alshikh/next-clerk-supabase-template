@@ -23,8 +23,12 @@ git remote add origin https://github.com/<you>/<new-name>.git
 
 Then:
 - Change `"name"` in `package.json`.
-- Change `title` and `description` in `app/layout.tsx`.
-- Change the project name in `components/site-header.tsx` and `app/(marketing)/page.tsx`.
+- In `config/site.ts`:
+  - set `name` and `description`
+  - pick `appLayout`: `"sidebar"` or `"topbar"`
+  - edit the nav links
+- Change the landing text in `app/(marketing)/page.tsx` and the logo mark in `components/layout/logo.tsx`.
+- If you have a new Figma tokens file, swap the `--brand-*` / `--gray-*` colors in `app/globals.css`.
 
 ```bash
 npm install
@@ -91,12 +95,12 @@ npm run dev
 
 | Symptom | Cause / fix |
 | --- | --- |
-| Page bounces between `/dashboard` and `/sign-in` | **PC clock is out of sync.** Clerk allows ~5s. Windows: Settings → Time & language → Date & time → **Sync now** (or `w32tm /resync` as admin). Log shows `Clock skew detected`. |
+| Page bounces between `/dashboard` and `/sign-in`, or actions say "You must be signed in" | **PC clock is out of sync.** In dev, `proxy.ts` tolerates up to 60s (production: Clerk's default 5s); beyond that it breaks. Windows: Settings → Time & language → Date & time → **Sync now** (or `w32tm /resync` as admin). Log shows `Clock skew detected`. |
 | `Supabase: No suitable key or wrong key type` | Clerk not added under Supabase **Third-Party Auth**, or the domain is wrong (must be `https://...clerk.accounts.dev`). |
 | `permission denied` / empty results when data exists | Supabase integration not **activated** in Clerk (step 2.3), or the row's `user_id` doesn't match the Clerk user id. |
 | `relation "public.notes" does not exist` | Migrations not run (step 3.4). |
 | Build error: `usePathname() ... outside of <Suspense>` | With `cacheComponents`, anything reading auth, session or URL on the server must be inside `<Suspense>`. |
-| Header shows stale signed-in/out state | Auth UI in layouts must be a client component (see `components/site-header.tsx`). |
+| Header shows stale signed-in/out state | Auth UI in layouts must be a client component (see `components/layout/`). |
 | Env changes not picked up | Restart `npm run dev`. |
 
 ---

@@ -1,29 +1,39 @@
 import { Suspense } from "react";
+import Link from "next/link";
 import { currentUser } from "@clerk/nextjs/server";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { NoteForm } from "@/features/notes/components/note-form";
-import { NoteList } from "@/features/notes/components/note-list";
-import { NoteListSkeleton } from "@/features/notes/components/note-list-skeleton";
+import { NotebookPenIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { getNotesCount } from "@/features/notes/queries";
 import { requireUser } from "@/lib/auth";
 
 export default function DashboardPage() {
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 p-8">
-      <Suspense fallback={<h1 className="h-8 text-2xl font-semibold" />}>
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 p-6">
+      <Suspense fallback={<Skeleton className="h-8 w-56" />}>
         <Greeting />
       </Suspense>
-      <Card>
-        <CardHeader>
-          <CardTitle>Notes</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-6">
-          <NoteForm />
-          <Suspense fallback={<NoteListSkeleton />}>
-            <ProtectedNoteList />
-          </Suspense>
-        </CardContent>
-      </Card>
-    </main>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <Card>
+          <CardHeader>
+            <CardDescription className="flex items-center gap-2">
+              <NotebookPenIcon className="size-4" /> Notes
+            </CardDescription>
+            <CardTitle className="text-3xl">
+              <Suspense fallback={<Skeleton className="h-9 w-12" />}>
+                <NotesCount />
+              </Suspense>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Button variant="outline" size="sm" nativeButton={false} render={<Link href="/notes" />}>
+              View notes
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 }
 
@@ -34,7 +44,7 @@ async function Greeting() {
   return <h1 className="text-2xl font-semibold">Welcome, {name}</h1>;
 }
 
-async function ProtectedNoteList() {
+async function NotesCount() {
   await requireUser();
-  return <NoteList />;
+  return await getNotesCount();
 }

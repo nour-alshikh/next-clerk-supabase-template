@@ -14,7 +14,7 @@ export function AuthCta() {
         </SignInButton>
       </Show>
       <Show when="signed-in">
-        <Button size="lg" render={<Link href="/dashboard" />}>
+        <Button size="lg" nativeButton={false} render={<Link href="/dashboard" />}>
           Go to dashboard
         </Button>
       </Show>

@@ -1,15 +1,19 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist_Mono, Rubik } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
-import { SiteHeader } from "@/components/site-header";
+import { shadcn } from "@clerk/themes";
+import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { siteConfig } from "@/config/site";
 // Fail fast with a clear message if .env.local is missing or wrong
 import "@/lib/env";
 import "@/lib/env.server";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// Brand font from the design tokens
+const rubik = Rubik({
+  variable: "--font-rubik",
   subsets: ["latin"],
 });
 
@@ -19,21 +23,27 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Next Template",
-  description: "Next.js template",
+  title: siteConfig.name,
+  description: siteConfig.description,
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <ClerkProvider>
+    // Clerk's shadcn theme reads our CSS variables, so sign-in matches the brand
+    <ClerkProvider appearance={{ theme: shadcn }}>
       <html
         lang="en"
-        className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+        className={`${rubik.variable} ${geistMono.variable} h-full antialiased`}
+        // next-themes sets the theme class before hydration
+        suppressHydrationWarning
       >
         <body className="min-h-full flex flex-col">
-          <SiteHeader />
-          {children}
-          <Toaster />
+          <ThemeProvider>
+            <TooltipProvider>
+              {children}
+              <Toaster />
+            </TooltipProvider>
+          </ThemeProvider>
         </body>
       </html>
     </ClerkProvider>
